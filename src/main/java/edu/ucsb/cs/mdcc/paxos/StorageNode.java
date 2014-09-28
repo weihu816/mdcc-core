@@ -31,11 +31,12 @@ public class StorageNode extends Agent {
 
     @Override
     public void start() {
+    	db.init();
         super.start();
-        db.init();
+        
         //(new Loader(db)).load();
         int port = config.getLocalMember().getPort();
-        port = 9094;
+        port = 9092;
         communicator.startListener(this, port);
         //now we talk to everyone else to do recovery
         runRecoveryPhase();

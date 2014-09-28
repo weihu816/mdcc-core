@@ -128,7 +128,7 @@ public class TPCC {
 	}
 
 	
-	public void Neworder(int w_id, int d_id) {
+	public void Neworder(int w_id, int d_id) throws TransactionException {
 		
 		MDCCTransaction t = fac.create();
 		t.begin();
@@ -357,7 +357,7 @@ public class TPCC {
 	 * Argument: 	d_id － randomly selected within [1 .. 10]
 	 * 				c_id_or_c_last － 60% c_last random NURand(255,0,999) | 40% c_id - random NURand(1023,1,3000)
 	 */
-	public void Payment(int w_id, int d_id, Object c_id_or_c_last) {
+	public void Payment(int w_id, int d_id, Object c_id_or_c_last) throws TransactionException {
 
 		MDCCTransaction t = fac.create();
 		t.begin();
@@ -569,7 +569,7 @@ public class TPCC {
 	 * Argument: 	d_id － randomly selected within [1 .. 10]
 	 * 				c_id_or_c_last - 60% c_last random NURand(255,0,999) | 40% c_id random NURand(1023,1,3000) 
 	 */
-	public void Orderstatus(int d_id, Object c_id_or_c_last) {
+	public void Orderstatus(int d_id, Object c_id_or_c_last) throws TransactionException {
 		
 		MDCCTransaction t = fac.create();
 		t.begin();
@@ -682,7 +682,7 @@ public class TPCC {
 	 * 				Each order is processed (delivered) in full within the scope of a read-write database transaction.
 	 * Argument: o_carrier_id - randomly selected within [1 .. 10]
 	 */
-	public void Delivery(int o_carrier_id) {
+	public void Delivery(int o_carrier_id) throws TransactionException {
 
 		MDCCTransaction t = fac.create();
 		t.begin();
@@ -787,7 +787,7 @@ public class TPCC {
 	 * 				sold items that have a stock level below a specified threshold.
 	 * Argument: threshold - randomInt(10, 20)
 	 */
-	public void Stocklevel(int threshold) {
+	public void Stocklevel(int threshold) throws TransactionException {
 
 		MDCCTransaction t = fac.create();
 		t.begin();

@@ -54,6 +54,7 @@ public class InMemoryDatabase implements Database {
     	for (int i = 0; i < columnFamilies.length; i++) {
     		db.put(columnFamilies[i], new ConcurrentHashMap<String, ConcurrentHashMap<String, Record>>());
     	}
+    	//(new Loader(this)).load();
     }
 
     public void shutdown() {

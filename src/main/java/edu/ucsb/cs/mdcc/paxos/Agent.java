@@ -1,12 +1,13 @@
 package edu.ucsb.cs.mdcc.paxos;
 
 import edu.ucsb.cs.mdcc.MDCCException;
-
+import edu.ucsb.cs.mdcc.config.AppServerConfiguration;
 import edu.ucsb.cs.mdcc.config.MDCCConfiguration;
 import edu.ucsb.cs.mdcc.config.Member;
 import edu.ucsb.cs.mdcc.util.HBaseServer;
 import edu.ucsb.cs.mdcc.util.Utils;
 import edu.ucsb.cs.mdcc.util.ZKServer;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.zookeeper.*;
@@ -30,9 +31,9 @@ public abstract class Agent implements Watcher, AsyncCallback.ChildrenCallback, 
 
     private static final String ELECTION_NODE = "/ELECTION_";
 
-    private ExecutorService zkService;
+    //private ExecutorService zkService;
     //private HBaseServer hbaseServer;
-    private ZooKeeper zkClient;
+    //private ZooKeeper zkClient;
     private final Map<String,Member> leaders = new ConcurrentHashMap<String, Member>();
 
     public void start() {
@@ -61,7 +62,7 @@ public abstract class Agent implements Watcher, AsyncCallback.ChildrenCallback, 
             handleException("Error loading the ZooKeeper configuration", e);
         } catch (QuorumPeerConfig.ConfigException e) {
             handleException("Error loading the ZooKeeper configuration", e);
-        }*/
+        }
 
         //String connection = "localhost:" + properties.getProperty("clientPort");
         String connection = "localhost:30110";
@@ -69,7 +70,7 @@ public abstract class Agent implements Watcher, AsyncCallback.ChildrenCallback, 
             zkClient = new ZooKeeper(connection, 5000, this);
         } catch (IOException e) {
             handleException("Error initializing the ZooKeeper client", e);
-        }
+        }*/
 
         //hbaseServer = new HBaseServer();
         //hbaseServer.start();
@@ -83,13 +84,26 @@ public abstract class Agent implements Watcher, AsyncCallback.ChildrenCallback, 
     }
 
     public void stop() {
-        zkService.shutdownNow();
+        //zkService.shutdownNow();
         //hbaseServer.stop();
         System.out.println("Program terminated");
     }
 
     public Member findLeader(String key, boolean force) {
-        if (!force && leaders.containsKey(key)) {
+    	if (!force && leaders.containsKey(key)) {
+            return leaders.get(key);
+        } else {
+            leaders.remove(key);
+        }
+        
+        Member[] members = AppServerConfiguration.getConfiguration().getMembers(key);
+        Member member=null;
+        for(Member m : members)
+        	if((member==null || m.getProcessId().compareTo(member.getProcessId())==-1))
+        		member = m;
+        leaders.put(key, member);
+        
+        /*if (!force && leaders.containsKey(key)) {
             return leaders.get(key);
         } else {
             leaders.remove(key);
@@ -128,17 +142,17 @@ public abstract class Agent implements Watcher, AsyncCallback.ChildrenCallback, 
                 } catch (InterruptedException ignored) {
                 }
             }
-        }
+        }*/
         return leaders.get(key);
     }
 
     public void process(WatchedEvent event) {
-        if (event.getType() == Event.EventType.None) {
+        /*if (event.getType() == Event.EventType.None) {
             handleNoneEvent(event);
         } else if (event.getType() == Event.EventType.NodeChildrenChanged) {
             log.info("Registering event for " + event.getPath());
             zkClient.getChildren(event.getPath(), true, this, null);
-        }
+        }*/
     }
 
     public void processResult(int code, String path, Object o, List<String> children) {
@@ -169,7 +183,7 @@ public abstract class Agent implements Watcher, AsyncCallback.ChildrenCallback, 
     }
 
     private void handleNoneEvent(WatchedEvent event) {
-        switch (event.getState()) {
+        /*switch (event.getState()) {
             case SyncConnected:
                 log.info("Successfully connected to the ZooKeeper server");
                 try {
@@ -190,7 +204,7 @@ public abstract class Agent implements Watcher, AsyncCallback.ChildrenCallback, 
                 break;
             case Expired:
                 handleFatalException("Connection to ZooKeeper server expired", null);
-        }
+        }*/
     }
 
     private void handleException(String msg, Exception e) {

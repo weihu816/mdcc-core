@@ -52,7 +52,7 @@ public abstract class Transaction {
     }
 
     // TODO HUWEI
-    public synchronized byte[] read(String table, String column, List<String> columns) throws TransactionException {
+    public synchronized Map<String, Result> read(String table, String column, List<String> columns) throws TransactionException {
         assertState();
         
         Map<String, Result> reads = doRead(table, column, columns);
@@ -67,7 +67,6 @@ public abstract class Transaction {
                 if (result.getVersion() == 0) {
                     throw new TransactionException("No object exists by the key: " + key);
                 }
-                return result.getValue();
             } else {
                 Result result = e.getValue();
                 if (result != null) {
@@ -81,17 +80,16 @@ public abstract class Transaction {
                     if (result.getVersion() == 0) {
                         throw new TransactionException("No object exists by the key: " + key);
                     }
-                    return result.getValue();
                 } else {
                     throw new TransactionException("No object exists by the key: " + key);
                 }
             }
         }
-        throw new TransactionException("No object exists by the constraints...");
+        return reads;
     }
     
     // TODO HUWEI
-    public synchronized byte[] read(String table, String key_prefix,
+    public synchronized List<Map<String, Result>> read(String table, String key_prefix,
  			List<String> columns, String constraintColumn, String constraintValue,
  			String orderColumn, boolean isAssending) throws TransactionException {
         assertState();
@@ -110,7 +108,6 @@ public abstract class Transaction {
 		            if (result.getVersion() == 0) {
 		                throw new TransactionException("No object exists by the key: " + key);
 		            }
-		            return result.getValue();
 		        } else {
 		            Result result = e.getValue();
 		            if (result != null) {
@@ -124,25 +121,24 @@ public abstract class Transaction {
 		                if (result.getVersion() == 0) {
 		                    throw new TransactionException("No object exists by the key: " + key);
 		                }
-		                return result.getValue();
 		            } else {
 		                throw new TransactionException("No object exists by the key: " + key);
 		            }
 		        }
 			}
 		}
-        throw new TransactionException("No object exists by the constraints...");
+        return reads;
     }
     
 	// TODO HUWEI
-	public synchronized byte[] read(String table, String key_prefix,
+	public synchronized List<Result> read(String table, String key_prefix,
 			String projectionColumn, String constraintColumn, int lowerBound,
 			int upperBound) throws TransactionException {
 		assertState();
 
-		List<Result> x = this.doRead(table, key_prefix, projectionColumn, constraintColumn, lowerBound, upperBound);
+		List<Result> reads = this.doRead(table, key_prefix, projectionColumn, constraintColumn, lowerBound, upperBound);
         
-		for (Result r : x) {
+		for (Result r : reads) {
 			String key = r.getKey();
 			
 			if (readSet.containsKey(key)) {
@@ -153,7 +149,6 @@ public abstract class Transaction {
 	            if (result.getVersion() == 0) {
 	                throw new TransactionException("No object exists by the key: " + key);
 	            }
-	            return result.getValue();
 	        } else {
 	            Result result = r;
 	            result.setDeleted(isDeleted(result.getValue()));
@@ -166,12 +161,18 @@ public abstract class Transaction {
 				if (result.getVersion() == 0) {
 				    throw new TransactionException("No object exists by the key: " + key);
 				}
-				return result.getValue();
 	        }
 		}
-		throw new TransactionException("No object exists by the constraints...");
+		return reads;
     }
         
+	// TODO HUWEI
+	public synchronized Integer read(String table, String key_prefix,
+			 String constraintColumn, int lowerBound,
+			int upperBound) throws TransactionException {
+		return this.doRead(table, key_prefix, constraintColumn, lowerBound, upperBound);
+	}
+	
     private boolean isDeleted(byte[] data) {
         return data.length == Database.DELETE_VALUE.length &&
                 Arrays.equals(data, Database.DELETE_VALUE);
